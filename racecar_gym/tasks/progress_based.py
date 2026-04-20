@@ -22,13 +22,22 @@ class MaximizeProgressTask(Task):
         progress = agent_state['lap'] + agent_state['progress']
         if self._last_stored_progress is None:
             self._last_stored_progress = progress
-        delta = abs(progress - self._last_stored_progress)
-        if delta > .5:  # the agent is crossing the starting line in the wrong direction
-            delta = (1 - progress) + self._last_stored_progress
+        delta = progress - self._last_stored_progress
+        if delta < -0.5:  # crossed start line forward (e.g. 0.99 -> 0.01)
+            delta = (1 - self._last_stored_progress) + progress
+        elif delta > 0.5:  # crossed start line backward
+            delta = 0.0
         reward = self._frame_reward
         if self._check_collision(agent_state):
             reward += self._collision_reward
         reward += delta * self._progress_reward
+        
+        # Lap completion bonus scaled by time to incentivize speed
+        if agent_state['lap'] > self._laps:
+            time_taken = max(0.1, agent_state['time'])
+            # 5000 is a large baseline bonus (5x a full lap's progress reward)
+            reward += 5000.0 / time_taken
+            
         self._last_stored_progress = progress
         return reward
 

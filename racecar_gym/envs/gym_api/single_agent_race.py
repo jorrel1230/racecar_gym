@@ -17,6 +17,7 @@ class SingleAgentRaceEnv(gymnasium.Env):
         self._scenario = scenario
         self._initialized = False
         self._render_mode = render_mode
+        self.render_mode = render_mode
         self._render_options = render_options or {}
         self.action_space = scenario.agent.action_space
 
@@ -56,6 +57,10 @@ class SingleAgentRaceEnv(gymnasium.Env):
         state = self._scenario.world.state()
         obs['time'] = np.array(state[self._scenario.agent.id]['time'], dtype=np.float32)
         return obs, state[self._scenario.agent.id]
+
+    def get_wrapper_attr(self, name):
+        """Compat shim for SB3 2.8+ which expects gymnasium>=0.29."""
+        return getattr(self, name)
 
     def render(self) -> Union[RenderFrame, list[RenderFrame], None]:
         if self._render_mode == 'human':

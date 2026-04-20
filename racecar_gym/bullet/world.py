@@ -69,6 +69,7 @@ class World(world.World):
         self._load_scene(self._config.sdf)
         p.setTimeStep(self._config.time_step)
         p.setGravity(0, 0, self._config.gravity)
+        p.setPhysicsEngineParameter(numSubSteps=4)
 
     def reset(self):
         p.setTimeStep(self._config.time_step)
@@ -92,6 +93,16 @@ class World(world.World):
         elif mode == 'random_bidirectional':
             strategy = RandomPositioningStrategy(progress_map=self._maps['progress'],
                                                  obstacle_map=self._maps['obstacle'], alternate_direction=True)
+        elif mode == 'random_biased':
+            # 100% forward but with large orientation noise (+/- 45 degrees).
+            # This ensures every spawn is useful for learning forward progress
+            # while forcing the agent to learn to straighten itself out.
+            strategy = RandomPositioningStrategy(
+                progress_map=self._maps['progress'],
+                obstacle_map=self._maps['obstacle'],
+                alternate_direction=0.0,
+                angle_noise=0.7854 # 45 degrees in rad
+            )
         elif mode == 'random_ball':
             progress_radius = 0.05
             min_distance_to_wall = 0.5

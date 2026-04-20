@@ -75,6 +75,18 @@ class RaceCar(Vehicle):
 
     def _setup_constraints(self):
         car = self._id
+        # Tune contact friction for all links (base + joints).
+        # lateralFriction: side-slip grip. spinningFriction: rotation grip (prevents drift).
+        # rollingFriction: rolling resistance. Adjust these to taste.
+        for link in range(-1, pybullet.getNumJoints(car)):
+            pybullet.changeDynamics(
+                car, link,
+                lateralFriction=5.0,
+                spinningFriction=0.5,
+                rollingFriction=0.05,
+                contactStiffness=30000,   # was 300000 in URDF — softer contact reduces facet bumps
+                contactDamping=300,       # critically damped at new stiffness
+            )
         for wheel in range(pybullet.getNumJoints(car)):
             pybullet.setJointMotorControl2(car,
                                           wheel,

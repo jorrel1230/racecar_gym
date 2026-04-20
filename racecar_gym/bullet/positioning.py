@@ -36,18 +36,31 @@ class AutomaticGridStrategy(PositioningStrategy):
 class RandomPositioningStrategy(PositioningStrategy):
 
     def __init__(self, progress_map: GridMap, obstacle_map: GridMap,
-                 min_distance_to_obstacle: float = 0.5, alternate_direction=False):
+                 min_distance_to_obstacle: float = 0.5, alternate_direction=False, angle_noise: float = 0.0):
         self._progress = progress_map
         self._obstacles = obstacle_map
         self._obstacle_margin = min_distance_to_obstacle
         self._alternate_direction = alternate_direction
+        self._angle_noise = angle_noise
 
     def get_pose(self, agent_index: int) -> Pose:
         center_corridor = np.argwhere(self._obstacles.map > self._obstacle_margin)
         delta_progress_next_pos = 0.025
-        if self._alternate_direction and random.random()<0.5:
+        
+        # Determine flip based on alternate_direction (bool or float probability)
+        flip_prob = 0.5 if isinstance(self._alternate_direction, bool) and self._alternate_direction else 0.0
+        if isinstance(self._alternate_direction, float):
+            flip_prob = self._alternate_direction
+            
+        if random.random() < flip_prob:
             delta_progress_next_pos = -delta_progress_next_pos
+            
         x, y, angle = self._random_position(self._progress, center_corridor, delta_progress_next_pos)
+        
+        # Add orientation noise if requested
+        if self._angle_noise > 0:
+            angle += random.uniform(-self._angle_noise, self._angle_noise)
+            
         return (x, y, 0.05), (0, 0, angle)
 
     def _random_position(self, progress_map, sampling_map, delta_progress_next_pos=0.025):

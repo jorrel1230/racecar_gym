@@ -32,9 +32,9 @@ class WorldSpec(YamlDataClassConfig):
 
 @dataclass
 class AgentSpec(YamlDataClassConfig):
-    id: str
-    vehicle: VehicleSpec = VehicleSpec()
-    task: TaskSpec = TaskSpec()
+    id: str = None
+    vehicle: VehicleSpec = field(default_factory=VehicleSpec)
+    task: TaskSpec = field(default_factory=TaskSpec)
 
 
 @dataclass
