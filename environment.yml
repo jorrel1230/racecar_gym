@@ -1,16 +1,12 @@
 name: racecar
 channels:
-  - pytorch
-  - nvidia
   - conda-forge
   - defaults
 dependencies:
   - python=3.12
   - pip
-  - pytorch::pytorch>=2.0.0
-  - pytorch::torchvision
-  - pytorch::pytorch-cuda=12.1   # adjust to cluster CUDA version
   - pip:
+    - torch>=2.0.0 --index-url https://download.pytorch.org/whl/cu121
     - pybullet==3.2.5
     - scipy
     - numpy>=1.26.0
@@ -20,4 +16,4 @@ dependencies:
     - pettingzoo>=1.24.0
     - stable-baselines3>=2.0.0
     - tqdm
-    - -e .   # installs racecar_gym itself (run from repo root)
+    - -e .
