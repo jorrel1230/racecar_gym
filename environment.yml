@@ -20,4 +20,4 @@ dependencies:
     - pettingzoo==1.22.3
     - stable-baselines3>=2.0.0
     - tqdm
-    - -e ..   # installs racecar_gym itself (editable)
+    - -e .   # installs racecar_gym itself (run from repo root)
