@@ -14,7 +14,7 @@
 
 set -euo pipefail
 
-REPO_DIR="$HOME/racecar_gym"
+REPO_DIR="/home/jr8867/racecar_gym"
 CONDA_ENV="racecar"
 
 echo "Job: $SLURM_JOB_ID | Node: $SLURMD_NODENAME | $(date)"
