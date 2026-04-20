@@ -21,6 +21,10 @@ echo "Job: $SLURM_JOB_ID | Node: $SLURMD_NODENAME | $(date)"
 echo "Repo: $REPO_DIR"
 
 # Activate conda env
+# Uncomment the module load line that matches your cluster:
+# module load anaconda3
+# module load miniconda3
+# module load conda
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "$CONDA_ENV"
 
