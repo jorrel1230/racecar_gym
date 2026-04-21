@@ -32,12 +32,6 @@ class MaximizeProgressTask(Task):
             reward += self._collision_reward
         reward += delta * self._progress_reward
         
-        # Lap completion bonus scaled by time to incentivize speed
-        if agent_state['lap'] > self._laps:
-            time_taken = max(0.1, agent_state['time'])
-            # 5000 is a large baseline bonus (5x a full lap's progress reward)
-            reward += 5000.0 / time_taken
-            
         self._last_stored_progress = progress
         return reward
 

@@ -30,18 +30,16 @@ class RacecarFeaturesExtractor(BaseFeaturesExtractor):
         # Input shape: (Batch, 1, 1080)
         lidar_shape = observation_space.spaces['lidar'].shape
         self.lidar_cnn = nn.Sequential(
-            # Downsample: 1080 -> 540 (2:1 keeps finer spatial resolution for turns)
-            nn.AvgPool1d(kernel_size=2, stride=2),
-            # Layer 1: Look for local wall features
-            nn.Conv1d(1, 32, kernel_size=5, stride=2, padding=2),
+            # Aggressive downsample: 1080 -> 270 (removes noise, preserves corridor geometry)
+            nn.AvgPool1d(kernel_size=4, stride=4),
+            # Layer 1: Wide kernel to capture large field-of-view gap structure
+            nn.Conv1d(1, 16, kernel_size=9, stride=2, padding=4),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2),
-            # Layer 2: Look for track shapes (curves, gaps)
-            nn.Conv1d(32, 64, kernel_size=5, stride=2, padding=2),
+            # Layer 2: Mid-range curvature / opening detection
+            nn.Conv1d(16, 32, kernel_size=5, stride=2, padding=2),
             nn.ReLU(),
-            nn.MaxPool1d(kernel_size=2),
-            # Layer 3: Global orientation/track context
-            nn.Conv1d(64, 128, kernel_size=3, stride=1),
+            # Layer 3: Global context (which side has more space)
+            nn.Conv1d(32, 32, kernel_size=3, stride=2, padding=1),
             nn.ReLU(),
             nn.Flatten(),
         )
@@ -157,14 +155,8 @@ class MultiInputRacecarEnv(gymnasium.Wrapper):
             self._stuck_steps = 0
             self._last_progress = current_progress
 
-        if self._stuck_steps > 100:
+        if self._stuck_steps > 200:
             truncated = True
-
-        # Speed reward: forward velocity encourages fast driving
-        velocity = obs.get('velocity', None)
-        if velocity is not None:
-            forward_speed = float(np.clip(velocity[0], 0, None))
-            reward += forward_speed * 0.05
 
         return self._process_obs(obs, info), reward, done, truncated, info
 
@@ -320,11 +312,11 @@ if __name__ == '__main__':
             verbose=0,
             learning_rate=args.learning_rate,
             buffer_size=args.buffer_size,
-            batch_size=256,
+            batch_size=512,
             tau=0.005,           # soft target update
             gamma=0.99,
             train_freq=1,        # update every env step
-            gradient_steps=1,
+            gradient_steps=2,
             ent_coef='auto',     # automatic entropy tuning
             learning_starts=1000,
             device='auto',
